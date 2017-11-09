@@ -46,7 +46,7 @@
     - sssd-ldap
     - sssd-krb5
     - supportutils
-    - monitoring-plugins-zypper
+    #- monitoring-plugins-zypper
     - nrpe
 
 - name: Remove useless packages
