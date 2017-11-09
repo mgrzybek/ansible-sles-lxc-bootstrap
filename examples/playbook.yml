@@ -1,0 +1,19 @@
+---
+
+- hosts: my-host
+  roles:
+    - role: sles-lxc-bootstrap
+  vars:
+    container:
+      name: my-container # Container's hostname
+      ips:
+        - interface: public
+          address: x.x.x.x
+          prefix: xx
+        - interface: save
+          address: x.x.x.x
+          prefix: xx
+        - interface: admin
+          address: x.x.x.x
+          prefix: xx
+          gateway: x.x.x.x

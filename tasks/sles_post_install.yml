@@ -1,0 +1,44 @@
+---
+
+# Hostname, DNS, pts
+- name: Allow login from pts/0
+  copy: src=securetty dest={{ sles_containers_root }}/{{ container.name }}/etc/securetty
+
+- name: Set hostname
+  shell: "echo {{ container.name }} > {{ sles_containers_root }}/{{ container.name }}/etc/hostname"
+
+- name: Set the DNS servers
+  shell: cp /etc/resolv.conf {{ sles_containers_root }}/{{ container.name }}/etc/resolv.conf
+
+#- name: Create an empty default config file for network
+#  file: path={{ sles_containers_root }}/{{ container.name }}/etc/sysconfig/network state=touch
+
+# Custom files
+
+- name: Create custom directories
+  file: path={{ sles_containers_root }}/{{ container.name }}/{{ item }} state=directory owner=root
+  with_items:
+    - /etc/ansible/facts.d
+    - /etc/pacemaker
+
+- name: Pacemaker authkey
+  copy: src=/etc/pacemaker/authkey dest={{ sles_containers_root }}/{{ container.name }}/etc/pacemaker/authkey remote_src=true
+  when: pacemaker_authkey.stat.exists == true
+
+# Networking
+
+- name: Create interfaces configurations
+  template: src=ifcfg-interface.j2 dest={{ sles_containers_root }}/{{ container.name }}/etc/sysconfig/network/ifcfg-{{ item.interface }}
+  with_items: "{{container.ips}}"
+
+- name: Set routes
+  template: src=ifroute-interface.j2 dest={{ sles_containers_root }}/{{ container.name }}/etc/sysconfig/network/ifroute-{{ item.interface }}
+  with_items: "{{container.ips}}"
+  when: item.gateway is defined and item.gateway != 'None'
+
+# Services
+
+- name: Start sshd at boot time
+  file: src=/usr/lib/systemd/system/{{ item }} dest={{ sles_containers_root }}/{{ container.name }}/etc/systemd/system/multi-user.target.wants/{{ item }} state=link
+  with_items:
+    - sshd.service

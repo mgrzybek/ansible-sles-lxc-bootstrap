@@ -1,0 +1,65 @@
+---
+
+- name: Init RPM db
+  shell: rpm --root {{ sles_containers_root }}/{{ container.name }} --initdb
+
+- name: Minimal zypper configuration
+  synchronize: src=/etc/zypp dest={{ sles_containers_root }}/{{ container.name }}/etc recursive=yes perms=yes existing_only=no
+  delegate_to: "{{ inventory_hostname }}"
+  when: repo_number.stdout | integer == 0
+
+- name: Repositories update
+  shell: zypper --no-gpg-checks --non-interactive --root {{ sles_containers_root }}/{{ container.name }} refresh
+
+- name: Install base patterns
+  shell: zypper --no-gpg-checks --non-interactive --root {{ sles_containers_root }}/{{ container.name }} install --download-in-advance -t pattern {{ item }}
+  with_items:
+    - base
+    - Minimal
+
+- name: Mise en place du lien symbolique sur la version de l'OS
+  file: src=SLES.prod dest={{ sles_containers_root }}/{{ container.name }}/etc/products.d/baseproduct state=link
+
+- name: Install base packages
+  shell: zypper --no-gpg-checks --non-interactive --root {{ sles_containers_root }}/{{ container.name }} install --download-in-advance {{ item }}
+  with_items:
+    - sles-release
+    - coreutils
+    - zypper
+    - less
+    - iputils
+    - vim
+    - sudo
+    - systemd
+    - systemd-sysvinit
+    - systemd-bash-completion
+    - bind-utils
+    - bash
+    - iproute
+    - syslog-service
+    - suse-build-key
+    - traceroute
+    - SuSEfirewall2
+    - pacemaker-remote
+    - openssh
+    - sssd
+    - sssd-ldap
+    - sssd-krb5
+    - supportutils
+    - monitoring-plugins-zypper
+    - nrpe
+
+- name: Remove useless packages
+  shell: zypper --no-gpg-checks --non-interactive --root {{ sles_containers_root }}/{{ container.name }} rm {{ item }} || exit 0
+  with_items:
+    - ipw-firmware
+    - kernel-firmware
+    - mpt-firmware
+    - atmel-firmware
+    - adaptec-firmware
+    - kernel-firmware
+    - nfs-kernel-server
+    - postfix
+
+- name: Refresh zypper on a daily basis
+  copy: src=zypper.cron dest={{ sles_containers_root }}/{{ container.name }}/etc/cron.daily/zypper owner=root group=root mode=0744

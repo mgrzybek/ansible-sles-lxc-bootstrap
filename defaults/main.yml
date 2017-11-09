@@ -1,0 +1,4 @@
+---
+# defaults file for ansible-sles-lxc-bootstrap
+
+sles_containers_root: /srv/cluster
