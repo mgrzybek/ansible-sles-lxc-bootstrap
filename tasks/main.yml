@@ -1,0 +1,14 @@
+---
+
+- include: sles_pre_install.yml
+  tags:
+    - sles-pre-install
+
+- include: sles_install.yml
+  tags:
+    - sles-install
+
+- include: sles_post_install.yml
+  tags:
+    - sles-post-install
+
