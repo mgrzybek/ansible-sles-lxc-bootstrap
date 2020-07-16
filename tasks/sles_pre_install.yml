@@ -1,15 +1,15 @@
 ---
 
-- name: Pre-Install | | Create the root directory
+- name: Pre-Install | Create the root directory
   file: path={{ lxc_root_path }} state=directory owner=root group=root
 
-- name: Pre-Install | | Creathe the container root directory
+- name: Pre-Install | Creathe the container root directory
   file: path={{ lxc_root_path }}/{{ container.name }} state=directory owner=root group=root
 
-- name: Pre-Install | | Get the number of configured repositories
+- name: Pre-Install | Get the number of configured repositories
   shell: zypper --no-gpg-checks --non-interactive --root {{ sles_containers_root }}/{{ container.name }} --quiet lr | gawk '/^^[#|-]/' | wc -l
   register: repo_number
 
-- name: Pre-Install | | Check if /etc/pacemaker/authkey
+- name: Pre-Install | Check if /etc/pacemaker/authkey
   stat: path=/etc/pacemaker/authkey get_checksum=false get_md5=false get_mime=false
   regiter: pacemaker_authkey
