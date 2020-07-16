@@ -1,26 +1,26 @@
 ---
 
-- name: Init RPM db
+- name: Install | | Init RPM db
   shell: rpm --root {{ sles_containers_root }}/{{ container.name }} --initdb
 
-- name: Minimal zypper configuration
+- name: Install | | Minimal zypper configuration
   synchronize: src=/etc/zypp dest={{ sles_containers_root }}/{{ container.name }}/etc recursive=yes perms=yes existing_only=no
   delegate_to: "{{ inventory_hostname }}"
   when: repo_number.stdout | integer == 0
 
-- name: Repositories update
+- name: Install | | Repositories update
   shell: zypper --no-gpg-checks --non-interactive --root {{ sles_containers_root }}/{{ container.name }} refresh
 
-- name: Install base patterns
+- name: Install | | Install base patterns
   shell: zypper --no-gpg-checks --non-interactive --root {{ sles_containers_root }}/{{ container.name }} install --download-in-advance -t pattern {{ item }}
   with_items:
     - base
     - Minimal
 
-- name: Mise en place du lien symbolique sur la version de l'OS
+- name: Install | | Mise en place du lien symbolique sur la version de l'OS
   file: src=SLES.prod dest={{ sles_containers_root }}/{{ container.name }}/etc/products.d/baseproduct state=link
 
-- name: Install base packages
+- name: Install | | Install base packages
   shell: zypper --no-gpg-checks --non-interactive --root {{ sles_containers_root }}/{{ container.name }} install --download-in-advance {{ item }}
   with_items:
     - sles-release
@@ -49,7 +49,7 @@
     #- monitoring-plugins-zypper
     - nrpe
 
-- name: Remove useless packages
+- name: Install | | Remove useless packages
   shell: zypper --no-gpg-checks --non-interactive --root {{ sles_containers_root }}/{{ container.name }} rm {{ item }} || exit 0
   with_items:
     - ipw-firmware
@@ -61,5 +61,5 @@
     - nfs-kernel-server
     - postfix
 
-- name: Refresh zypper on a daily basis
+- name: Install | | Refresh zypper on a daily basis
   copy: src=zypper.cron dest={{ sles_containers_root }}/{{ container.name }}/etc/cron.daily/zypper owner=root group=root mode=0744
